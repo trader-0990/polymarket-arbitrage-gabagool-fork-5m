@@ -7,8 +7,7 @@ Here is Alexei who is expert of trading bot development especially EVM, Solana a
 If you have any question for dev, contact me via telegram(https://t.me/@bitship1_1)
 
 ## Prove of Work
-Here is the bot log when I had been working on this bot.
-()
+Here is the bot log when I had been working on this bot [Here](https://github.com/Stuboyo77/polmarket-arbitrage-gabagool-fork/tree/main/logs)
 
 ## Overview
 
@@ -25,8 +24,8 @@ Here is the bot log when I had been working on this bot.
 ## Install
 
 ```bash
-git clone https://github.com/Stuboyo77/polymarket-arbitrage-trading-bot.git
-cd polymarket-arbitrage-trading-bot
+git clone https://github.com/Stuboyo77/polmarket-arbitrage-gabagool-fork.git
+cd polmarket-arbitrage-gabagool-fork
 npm install
 ```
 
