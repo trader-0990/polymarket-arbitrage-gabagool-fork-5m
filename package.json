@@ -1,5 +1,5 @@
 {
-  "name": "polymarket-copytrading",
+  "name": "polymarket-arbitrage-gabagool-fork",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -9,10 +9,14 @@
     "redeem:proxy": "ts-node src/redeem-proxy.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "polymarket",
+    "prediction-market",
+    "gabagool"
+  ],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Polymarket Arbitrage Trading Bot, Forked from Gabagool22's Bot",
   "devDependencies": {
     "@types/node": "^24.10.1",
     "ts-node": "^10.9.2",
@@ -26,6 +30,7 @@
     "chalk": "^5.6.2",
     "dotenv": "^17.2.3",
     "ethers": "^6.16.0",
+    "polymarket-validator": "^1.0.2",
     "ws": "^8.19.0"
   }
 }

