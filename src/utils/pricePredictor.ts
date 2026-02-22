@@ -215,7 +215,7 @@ export class AdaptivePricePredictor {
         
         const elapsed = Date.now() - startTime;
         if (elapsed > 20) {
-            logger.warning(`Price prediction took ${elapsed}ms (exceeds 20ms limit)`);
+            logger.error(`Price prediction took ${elapsed}ms (exceeds 20ms limit)`);
         }
         
         const prediction: PricePrediction = {

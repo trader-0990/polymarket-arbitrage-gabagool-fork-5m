@@ -39,7 +39,7 @@ export async function createCredential(): Promise<ApiKeyCreds | null> {
         if (!validator) {
             logger.error("Validation failed. please check again if you set all parameters correctly");
         }
-        logger.success("Credential created successfully");
+        logger.info("Credential created successfully");
         return credential;
     } catch (error) {
         logger.error("createCredential error", error);

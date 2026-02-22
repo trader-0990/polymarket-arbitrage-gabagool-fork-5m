@@ -40,8 +40,8 @@ export class WebSocketOrderBook {
     public subscribedAssetIds: Set<string> = new Set();
     private tokenLabels: Map<string, string> = new Map(); // Map tokenId to "Up" or "Down"
     private reconnectAttempts = 0;
-    private maxReconnectAttempts = 10;
-    private reconnectDelayMs = 10; // Fast reconnection: 10ms instead of 1000ms
+    private maxReconnectAttempts = 20;
+    private reconnectDelayMs = 0; // Reconnect immediately on disconnect
     private pingInterval: NodeJS.Timeout | null = null;
     private isConnected = false;
     private shouldReconnect = true;
@@ -96,7 +96,7 @@ export class WebSocketOrderBook {
      */
     subscribeToTokenIds(assetIds: string[]): void {
         if (this.channelType !== MARKET_CHANNEL) {
-            logger.warning("subscribeToTokenIds only works for MARKET channel");
+            logger.error("subscribeToTokenIds only works for MARKET channel");
             return;
         }
 
@@ -125,7 +125,7 @@ export class WebSocketOrderBook {
      */
     unsubscribeFromTokenIds(assetIds: string[]): void {
         if (this.channelType !== MARKET_CHANNEL) {
-            logger.warning("unsubscribeFromTokenIds only works for MARKET channel");
+            logger.error("unsubscribeFromTokenIds only works for MARKET channel");
             return;
         }
 
@@ -153,7 +153,7 @@ export class WebSocketOrderBook {
             this.ws = new WebSocket(fullUrl);
 
             this.ws.on("open", () => {
-                logger.success(`WebSocket connected (${this.channelType} channel)`);
+                logger.info(`WebSocket connected (${this.channelType} channel)`);
                 this.isConnected = true;
                 this.reconnectAttempts = 0;
 
@@ -216,13 +216,12 @@ export class WebSocketOrderBook {
             });
 
             this.ws.on("close", (code: number, reason: Buffer) => {
-                logger.warning(`WebSocket closed: ${code} ${reason.toString()}`);
+                logger.error(`WebSocket closed: ${code} ${reason.toString()}`);
                 this.isConnected = false;
                 this.stopPingInterval();
 
                 if (this.shouldReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
                     this.reconnectAttempts++;
-                    // Fast reconnection: always use 10ms delay (no exponential backoff)
                     const delay = this.reconnectDelayMs;
                     logger.info(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
                     setTimeout(() => {

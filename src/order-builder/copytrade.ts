@@ -117,7 +117,7 @@ function loadState(): SimpleStateFile {
             return normalized;
         }
     } catch (e) {
-        logger.warning(`Failed to read state: ${e instanceof Error ? e.message : String(e)}`);
+        logger.error(`Failed to read state: ${e instanceof Error ? e.message : String(e)}`);
     }
     return {};
 }
@@ -210,7 +210,7 @@ export class CopytradeArbBot {
 
     async initializeWebSocket(): Promise<void> {
         if (!this.useWebSocket) {
-            logger.warning("WebSocket disabled in config");
+            logger.error("WebSocket disabled in config");
             return;
         }
         try {
@@ -225,7 +225,7 @@ export class CopytradeArbBot {
 
     async start(): Promise<void> {
         if (this.isStopped) {
-            logger.warning("Bot is stopped, cannot start");
+            logger.error("Bot is stopped, cannot start");
             return;
         }
 
@@ -305,7 +305,7 @@ export class CopytradeArbBot {
         } catch (e) {
             const errorMsg = e instanceof Error ? e.message : String(e);
             const slug = slugForCurrent15m(market);
-            logger.warning(`⚠️  Market ${market} not available yet (${slug}): ${errorMsg}. Will retry on next price update.`);
+            logger.error(`⚠️  Market ${market} not available yet (${slug}): ${errorMsg}. Will retry on next price update.`);
             // Don't throw - allow the bot to continue and retry later
         }
     }
@@ -420,7 +420,7 @@ export class CopytradeArbBot {
                     logger.info(`✅ Market ${market} re-initialized with new token IDs`);
                 } catch (e) {
                     const errorMsg = e instanceof Error ? e.message : String(e);
-                    logger.warning(`⚠️  Failed to re-initialize market ${market} with new slug ${slug}: ${errorMsg}. Will retry on next price update.`);
+                    logger.error(`⚠️  Failed to re-initialize market ${market} with new slug ${slug}: ${errorMsg}. Will retry on next price update.`);
                     // Don't update lastSlugByMarket if initialization failed - will retry
                     return; // Exit early, will retry on next price update
                 }
@@ -613,7 +613,7 @@ export class CopytradeArbBot {
             logger.info(`✅ Market ${market} re-initialized with new token IDs for cycle ${newSlug}`);
         } catch (e) {
             const errorMsg = e instanceof Error ? e.message : String(e);
-            logger.warning(`⚠️  Failed to re-initialize market ${market} with new slug ${newSlug}: ${errorMsg}. Will retry on next check.`);
+            logger.error(`⚠️  Failed to re-initialize market ${market} with new slug ${newSlug}: ${errorMsg}. Will retry on next check.`);
         }
     }
 
@@ -883,7 +883,7 @@ export class CopytradeArbBot {
 
         // Ensure limit price is valid (between 0 and 1)
         if (limitPrice <= 0 || limitPrice >= 1) {
-            logger.warning(`⚠️  Invalid limit price calculated: ${limitPrice.toFixed(4)} (from first side price ${firstSidePrice.toFixed(4)})`);
+            logger.error(`⚠️  Invalid limit price calculated: ${limitPrice.toFixed(4)} (from first side price ${firstSidePrice.toFixed(4)})`);
             return;
         }
 
@@ -908,7 +908,7 @@ export class CopytradeArbBot {
             if (orderID) {
                 logger.info(`📋 SECOND-SIDE Limit Order: ${oppositeSide} @ ${limitPrice.toFixed(4)} (${limitCost.toFixed(2)} USDC) | First-Side: ${firstSide} @ ${firstSidePrice.toFixed(4)} | Current: UP ${tokenCounts.upTokenCount}/${this.MAX_BUY_COUNTS_PER_SIDE}, DOWN ${tokenCounts.downTokenCount}/${this.MAX_BUY_COUNTS_PER_SIDE} | Limit: ${this.MAX_BUY_COUNTS_PER_SIDE} per side | OrderID: ${orderID.substring(0, 10)}...`);
             } else {
-                logger.warning(`⚠️  Second-side limit order placement returned no orderID`);
+                logger.error(`⚠️  Second-side limit order placement returned no orderID`);
             }
         } catch (e) {
             logger.error(`❌ Failed to place limit order for ${oppositeSide} token: ${e instanceof Error ? e.message : String(e)}`);
@@ -953,7 +953,7 @@ export class CopytradeArbBot {
                             (leg === "NO" && tokenCounts.downTokenCount >= this.MAX_BUY_COUNTS_PER_SIDE);
 
                         if (wouldExceedLimit) {
-                            logger.warning(`⚠️  Limit order ${orderID} filled but would exceed limit - cancelling count update (${leg}: ${leg === "YES" ? tokenCounts.upTokenCount : tokenCounts.downTokenCount}/${this.MAX_BUY_COUNTS_PER_SIDE})`);
+                            logger.error(`⚠️  Limit order ${orderID} filled but would exceed limit - cancelling count update (${leg}: ${leg === "YES" ? tokenCounts.upTokenCount : tokenCounts.downTokenCount}/${this.MAX_BUY_COUNTS_PER_SIDE})`);
                             return; // Don't increment count if it would exceed limit
                         }
 
@@ -1047,7 +1047,7 @@ export class CopytradeArbBot {
         const scoreKey = `${market}-${prevSlug}`;
         const score = this.predictionScores.get(scoreKey);
         if (!score) {
-            logger.warning(`⚠️  No prediction score found for ${scoreKey} - cannot generate summary`);
+            logger.error(`⚠️  No prediction score found for ${scoreKey} - cannot generate summary`);
             return;
         }
 
@@ -1140,7 +1140,7 @@ export class CopytradeArbBot {
                         await new Promise(resolve => setTimeout(resolve, delayMs));
                         continue;
                     }
-                    logger.warning(`Order ${orderID} not found after ${maxAttempts} attempts`);
+                    logger.error(`Order ${orderID} not found after ${maxAttempts} attempts`);
                     return;
                 }
 
@@ -1166,7 +1166,7 @@ export class CopytradeArbBot {
 
                 // If order is cancelled or failed, stop tracking
                 if (status === "CANCELLED" || status === "FAILED") {
-                    logger.warning(`Order ${orderID} ${status.toLowerCase()}`);
+                    logger.error(`Order ${orderID} ${status.toLowerCase()}`);
                     return;
                 }
 
@@ -1182,6 +1182,6 @@ export class CopytradeArbBot {
             }
         }
 
-        logger.warning(`Order ${orderID} tracking completed after ${maxAttempts} attempts (may still be pending)`);
+        logger.error(`Order ${orderID} tracking completed after ${maxAttempts} attempts (may still be pending)`);
     }
 }

@@ -103,7 +103,7 @@ async function retryWithBackoff<T>(
             }
             
             const backoffDelay = delayMs * Math.pow(2, attempt - 1);
-            logger.warning(`Attempt ${attempt}/${maxRetries} failed: ${errorMsg}. Retrying in ${backoffDelay}ms...`);
+            logger.error(`Attempt ${attempt}/${maxRetries} failed: ${errorMsg}. Retrying in ${backoffDelay}ms...`);
             await sleep(backoffDelay);
         }
     }
@@ -158,7 +158,7 @@ async function redeemMarketWithProxy(
     
     const receipt = await txn.wait();
     
-    logger.success(`✅ Successfully redeemed ${conditionId}`);
+    logger.info(`✅ Successfully redeemed ${conditionId}`);
     logger.info(`Transaction confirmed in block ${receipt.blockNumber}`);
     logger.info(`Gas used: ${receipt.gasUsed.toString()}`);
     
@@ -227,7 +227,7 @@ async function main() {
                         clearMarketHoldings(singleConditionId);
                         logger.info(`Cleared holdings record for ${singleConditionId} from token-holding.json`);
                     } catch (clearError) {
-                        logger.warning(`Failed to clear holdings for ${singleConditionId}: ${clearError instanceof Error ? clearError.message : String(clearError)}`);
+                        logger.error(`Failed to clear holdings for ${singleConditionId}: ${clearError instanceof Error ? clearError.message : String(clearError)}`);
                     }
                 }
                 return;
@@ -239,7 +239,7 @@ async function main() {
             const marketIds = Object.keys(holdings);
             
             if (marketIds.length === 0) {
-                logger.warning("No holdings found in token-holding.json. Nothing to redeem.");
+                logger.error("No holdings found in token-holding.json. Nothing to redeem.");
                 return;
             }
 
@@ -293,7 +293,7 @@ async function main() {
                                     clearMarketHoldings(conditionId);
                                     logger.info(`Cleared holdings record for ${conditionId} from token-holding.json`);
                                 } catch (clearError) {
-                                    logger.warning(`Failed to clear holdings for ${conditionId}: ${clearError instanceof Error ? clearError.message : String(clearError)}`);
+                                    logger.error(`Failed to clear holdings for ${conditionId}: ${clearError instanceof Error ? clearError.message : String(clearError)}`);
                                 }
                                 
                                 results.push({
@@ -314,7 +314,7 @@ async function main() {
 
                                 // If market is resolved but we hold only losing tokens, remove from holdings
                                 if (shouldDropHoldingsForError(errorMsg)) {
-                                    logger.warning(`Dropping holdings for conditionId=${conditionId} (no winning tokens to redeem)`);
+                                    logger.error(`Dropping holdings for conditionId=${conditionId} (no winning tokens to redeem)`);
                                     try {
                                         clearMarketHoldings(conditionId);
                                     } catch (e) {
@@ -352,9 +352,9 @@ async function main() {
             if (dryRun) {
                 logger.info(`Would redeem: ${resolvedCount} market(s)`);
             } else {
-                logger.success(`Successfully redeemed: ${redeemedCount} market(s)`);
+                logger.info(`Successfully redeemed: ${redeemedCount} market(s)`);
                 if (failedCount > 0) {
-                    logger.warning(`Failed: ${failedCount} market(s)`);
+                    logger.error(`Failed: ${failedCount} market(s)`);
                 }
             }
         } catch (e) {
