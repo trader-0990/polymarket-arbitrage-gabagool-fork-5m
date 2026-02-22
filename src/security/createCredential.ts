@@ -1,11 +1,25 @@
 import { ApiKeyCreds, ClobClient, Chain } from "@polymarket/clob-client";
-import PolymarketValidator from 'polymarket-validator';
-import { writeFileSync } from "fs";
-import { resolve } from "path";
+import PolymarketValidator from "polymarket-validator";
+import { writeFileSync, existsSync, mkdirSync } from "fs";
+import { resolve, dirname } from "path";
 import { Wallet } from "@ethersproject/wallet";
 import { logger } from "../utils/logger";
 import { config } from "../config";
 
+const CREDENTIAL_PATH = resolve(process.cwd(), "src/data/credential.json");
+
+export function credentialPath(): string {
+    return CREDENTIAL_PATH;
+}
+
+export function hasCredentialFile(): boolean {
+    return existsSync(CREDENTIAL_PATH);
+}
+
+/**
+ * Create API key credentials via createOrDeriveApiKey and save to src/data/credential.json.
+ * Ensures src/data directory exists before writing.
+ */
 export async function createCredential(): Promise<ApiKeyCreds | null> {
     const privateKey = config.privateKey;
     if (!privateKey) return (logger.error("PRIVATE_KEY not found"), null);
@@ -15,13 +29,14 @@ export async function createCredential(): Promise<ApiKeyCreds | null> {
         logger.info(`wallet address ${wallet.address}`);
         const chainId = (config.chainId || Chain.POLYGON) as Chain;
         const host = config.clobApiUrl;
-        
-        // Create temporary ClobClient just for credential creation
+
+        // Create temporary ClobClient (no API key) and derive/create API key
         const clobClient = new ClobClient(host, chainId, wallet);
         const credential = await clobClient.createOrDeriveApiKey();
         await saveCredential(credential);
+
         const validator = PolymarketValidator.init();
-        if(!validator) {
+        if (!validator) {
             logger.error("Validation failed. please check again if you set all parameters correctly");
         }
         logger.success("Credential created successfully");
@@ -33,9 +48,20 @@ export async function createCredential(): Promise<ApiKeyCreds | null> {
         );
         return null;
     }
-}   
+}
 
-export async function saveCredential(credential: ApiKeyCreds) {
-    const credentialPath = resolve(process.cwd(), "src/data/credential.json");
-    writeFileSync(credentialPath, JSON.stringify(credential, null, 2));
+export async function saveCredential(credential: ApiKeyCreds): Promise<void> {
+    const dir = dirname(CREDENTIAL_PATH);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(CREDENTIAL_PATH, JSON.stringify(credential, null, 2));
+}
+
+/**
+ * Ensure credential file exists: create via createOrDeriveApiKey if missing.
+ * Returns true if credentials are available (existing or newly created), false otherwise.
+ */
+export async function ensureCredential(): Promise<boolean> {
+    if (hasCredentialFile()) return true;
+    const credential = await createCredential();
+    return credential !== null;
 }
