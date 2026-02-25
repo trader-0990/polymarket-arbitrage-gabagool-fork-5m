@@ -795,12 +795,14 @@ export class CopytradeArbBot {
             return; // Skip - limit reached
         }
 
-        // Increment count BEFORE calling buySharesWithRetry to prevent race conditions
-        // This ensures the limit is enforced immediately when the function is called
-        tokenCounts.upTokenCount++;
-        score.upTokenCount++;
-        tokenCounts.downTokenCount++;
-        score.downTokenCount++;
+        // Increment count for the side we're buying ONLY (before calling buySharesWithRetry to prevent race conditions)
+        if (buyToken === "UP") {
+            tokenCounts.upTokenCount++;
+            score.upTokenCount++;
+        } else {
+            tokenCounts.downTokenCount++;
+            score.downTokenCount++;
+        }
 
         // Execute the buy
         const buyCost = buyPrice * this.cfg.sharesPerSide;
@@ -835,9 +837,12 @@ export class CopytradeArbBot {
             tokenCounts
         );
 
-        // Track the trade cost (count already incremented above)
-        score.upTokenCost += buyCost;
-        score.downTokenCost += buyCost;
+        // Track the trade cost for the side we actually bought only
+        if (buyToken === "UP") {
+            score.upTokenCost += buyCost;
+        } else {
+            score.downTokenCost += buyCost;
+        }
 
         score.trades.push({
             prediction: prediction.direction,
@@ -907,6 +912,22 @@ export class CopytradeArbBot {
             const limitCost = limitPrice * this.cfg.sharesPerSide;
             if (orderID) {
                 logger.info(`📋 SECOND-SIDE Limit Order: ${oppositeSide} @ ${limitPrice.toFixed(4)} (${limitCost.toFixed(2)} USDC) | First-Side: ${firstSide} @ ${firstSidePrice.toFixed(4)} | Current: UP ${tokenCounts.upTokenCount}/${this.MAX_BUY_COUNTS_PER_SIDE}, DOWN ${tokenCounts.downTokenCount}/${this.MAX_BUY_COUNTS_PER_SIDE} | Limit: ${this.MAX_BUY_COUNTS_PER_SIDE} per side | OrderID: ${orderID.substring(0, 10)}...`);
+                // Track second-side limit so fills update score (downTokenCost/upTokenCost and counts)
+                const leg = oppositeSide === "UP" ? "YES" : "NO";
+                this.trackLimitOrderAsync(
+                    orderID,
+                    leg,
+                    oppositeTokenId,
+                    tokenIds.conditionId,
+                    this.cfg.sharesPerSide,
+                    limitPrice,
+                    market,
+                    slug,
+                    tokenIds.upIdx,
+                    tokenIds.downIdx,
+                    scoreKey,
+                    tokenCounts
+                ).catch(() => { /* fire-and-forget */ });
             } else {
                 logger.error(`⚠️  Second-side limit order placement returned no orderID`);
             }
