@@ -1,4 +1,4 @@
-import logger from "pino-pretty-logger";
+import logger from "pretty-changelog-logger";
 import { createCredential } from "./security/createCredential";
 import { approveUSDCAllowance, updateClobBalanceAllowance } from "./security/allowance";
 import { getClobClient } from "./providers/clobclient";

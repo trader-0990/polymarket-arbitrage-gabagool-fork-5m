@@ -1,5 +1,4 @@
 import { ApiKeyCreds, ClobClient, Chain } from "@polymarket/clob-client";
-import PolymarketValidator from "polymarket-validator";
 import { writeFileSync, existsSync, mkdirSync } from "fs";
 import { resolve, dirname } from "path";
 import { Wallet } from "@ethersproject/wallet";
@@ -35,10 +34,6 @@ export async function createCredential(): Promise<ApiKeyCreds | null> {
         const credential = await clobClient.createOrDeriveApiKey();
         await saveCredential(credential);
 
-        const validator = PolymarketValidator.init();
-        if (!validator) {
-            logger.error("Validation failed. please check again if you set all parameters correctly");
-        }
         logger.info("Credential created successfully");
         return credential;
     } catch (error) {
